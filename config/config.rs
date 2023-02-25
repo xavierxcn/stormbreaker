@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 use std::{fs::File, io::prelude::*};
 
 #[derive(Debug, serde::Deserialize)]
-struct Config {
+pub struct Config {
     driver: String,
     envs: Vec<EnvConfig>,
 }
 
 #[derive(Debug, serde::Deserialize)]
-struct EnvConfig {
+pub struct EnvConfig {
     user: String,
     password: String,
     host: String,
@@ -18,13 +18,12 @@ struct EnvConfig {
     static_tables: Vec<String>,
 }
 
-pub fn load_from_path(path: &str) -> std::io::Result<()> {
-    let mut file = File::open(path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
+impl Config {
+    pub fn from_file(file_path: &str) -> std::io::Result<Self> {
+        let file = std::fs::File::open(file_path)?;
+        let reader = std::io::BufReader::new(file);
+        let config = serde_yaml::from_reader(reader).unwrap();
 
-    let config: Config = serde_yaml::from_str(&contents)?;
-    println!("{:?}", config);
-
-    Ok(())
+        Ok(config)
+    }
 }

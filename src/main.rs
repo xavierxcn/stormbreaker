@@ -1,6 +1,6 @@
 use std::{ffi::OsString};
-
 use clap::{arg, Command};
+use config::Config;
 
 const DUMP: &str = "dump";
 const COMPARE: &str = "compare";
@@ -64,17 +64,19 @@ fn main() {
 
     match matches.subcommand() {
         Some((DUMP, sub_matches)) => {
-            let config = sub_matches.get_one::<String>("config").unwrap();
-            println!("Dumping database with {config:?}")
+            let path = sub_matches.get_one::<String>("config").unwrap();
+            println!("Dumping database with {path:?}");
+            let config = Config::from_file(&path).unwrap();
+            println!("{:?}", config)
         }
         Some((COMPARE, sub_matches)) => {
-            let config = sub_matches.get_one::<String>("config").unwrap();
-            println!("Comparing database with {config:?}")
+            let path = sub_matches.get_one::<String>("config").unwrap();
+            println!("Comparing database with {path:?}")
             
         }
         Some((RUN, sub_matches)) => {
-            let config = sub_matches.get_one::<String>("config").unwrap();
-            println!("Running sql commands with {config:?}")
+            let path = sub_matches.get_one::<String>("config").unwrap();
+            println!("Running sql commands with {path:?}")
         }
         Some((ext, sub_matches)) => {
             let args = sub_matches

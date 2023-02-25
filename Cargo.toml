@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "config"
+path = "config/config.rs"
 
 [dependencies]
 clap = { version = "4.1.6", features = ["std", "derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"

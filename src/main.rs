@@ -9,7 +9,7 @@ const RUN: &str = "run";
 
 fn cli() -> Command {
     Command::new("storm")
-        .version("0.1.0")
+        .version("v0.1.0-alpha")
         .about("Database migration tool")
         .subcommand_required(true)
         .arg_required_else_help(true)

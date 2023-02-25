@@ -93,7 +93,7 @@ fn main() {
             let path = sub_matches.get_one::<String>("config").unwrap();
             println!("Running sql commands with {path:?}")
         }
-        Some((INIT, sub_matches)) => {
+        Some((INIT, _)) => {
             println!("Initializing a migrate project")
         }
         Some((ext, sub_matches)) => {

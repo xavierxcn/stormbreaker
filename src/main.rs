@@ -1,114 +1,80 @@
-use std::ffi::OsString;
-use std::path::PathBuf;
+use std::{ffi::OsString};
 
 use clap::{arg, Command};
 
+const DUMP: &str = "dump";
+const COMPARE: &str = "compare";
+const RUN: &str = "run";
+
+
 fn cli() -> Command {
     Command::new("storm")
+        .version("0.1.0")
         .about("Database migration tool")
         .subcommand_required(true)
         .arg_required_else_help(true)
         .allow_external_subcommands(true)
         .subcommand(
-            Command::new("dump")
+            Command::new(DUMP)
                 .about("Dump the database to a file")
-                .arg(arg!(<REMOTE> "The remote to clone"))
+                .arg(config_arg())
+                .arg(url_arg())
+                .arg(file_arg())
                 .arg_required_else_help(true),
         )
         .subcommand(
-            Command::new("compare")
+            Command::new(COMPARE)
                 .about("Compare the database file")
-                .arg(arg!(base: [COMMIT]))
-                .arg(arg!(head: [COMMIT]))
-                .arg(arg!(path: [PATH]).last(true))
-                .arg(
-                    arg!(--color <WHEN>)
-                        .value_parser(["always", "auto", "never"])
-                        .num_args(0..=1)
-                        .require_equals(true)
-                        .default_value("auto")
-                        .default_missing_value("always"),
-                ),
-        )
-        .subcommand(
-            Command::new("run")
-                .about("Run sql commands from sql file")
-                .arg(arg!(<REMOTE> "The remote to target"))
+                .arg(config_arg())
+                .arg(url_arg())
+                .arg(file_arg())
                 .arg_required_else_help(true),
         )
         .subcommand(
-            Command::new("version")
-                .about("Print the version")
-                .arg_required_else_help(true)
-                .arg(arg!(<PATH> ... "Stuff to add").value_parser(clap::value_parser!(PathBuf))),
+            Command::new(RUN)
+                .about("Run sql commands from sql file")
+                .arg(config_arg())
+                .arg(url_arg())
+                .arg(file_arg())
+                .arg_required_else_help(true),
         )
+        
+}
+
+fn config_arg() -> clap::Arg {
+    arg!(-c --config <CONFIG>)
+    .default_missing_value("~/.stormbreaker/storm.yaml")
+    .help("The path to the configuration file. If not provided, the default path is ~/.stormbreaker/storm.yaml")
+}
+
+fn url_arg() -> clap::Arg {
+    arg!(-u --url <URL>)
+    .default_missing_value("mysql://localhost:3306")
+    .help("The url to the database. If not provided, the default url is mysql://localhost:3306")
+}
+
+fn file_arg() -> clap::Arg {
+    arg!(-f --file <FILE>)
+    .default_missing_value("dump.sql")
+    .help("The path to the sql file. If not provided, the default path is latest version sql file.")
 }
 
 fn main() {
     let matches = cli().get_matches();
 
     match matches.subcommand() {
-        Some(("clone", sub_matches)) => {
-            println!(
-                "Cloning {}",
-                sub_matches.get_one::<String>("REMOTE").expect("required")
-            );
+        Some((DUMP, sub_matches)) => {
+            let config = sub_matches.get_one::<String>("config").unwrap();
+            println!("Dumping database with {config:?}")
         }
-        Some(("diff", sub_matches)) => {
-            let color = sub_matches
-                .get_one::<String>("color")
-                .map(|s| s.as_str())
-                .expect("defaulted in clap");
-
-            let mut base = sub_matches.get_one::<String>("base").map(|s| s.as_str());
-            let mut head = sub_matches.get_one::<String>("head").map(|s| s.as_str());
-            let mut path = sub_matches.get_one::<String>("path").map(|s| s.as_str());
-            if path.is_none() {
-                path = head;
-                head = None;
-                if path.is_none() {
-                    path = base;
-                    base = None;
-                }
-            }
-            let base = base.unwrap_or("stage");
-            let head = head.unwrap_or("worktree");
-            let path = path.unwrap_or("");
-            println!("Diffing {base}..{head} {path} (color={color})");
+        Some((COMPARE, sub_matches)) => {
+            let config = sub_matches.get_one::<String>("config").unwrap();
+            println!("Comparing database with {config:?}")
+            
         }
-        Some(("push", sub_matches)) => {
-            println!(
-                "Pushing to {}",
-                sub_matches.get_one::<String>("REMOTE").expect("required")
-            );
-        }
-        Some(("add", sub_matches)) => {
-            let paths = sub_matches
-                .get_many::<PathBuf>("PATH")
-                .into_iter()
-                .flatten()
-                .collect::<Vec<_>>();
-            println!("Adding {paths:?}");
-        }
-        Some(("stash", sub_matches)) => {
-            let stash_command = sub_matches.subcommand().unwrap_or(("push", sub_matches));
-            match stash_command {
-                ("apply", sub_matches) => {
-                    let stash = sub_matches.get_one::<String>("STASH");
-                    println!("Applying {stash:?}");
-                }
-                ("pop", sub_matches) => {
-                    let stash = sub_matches.get_one::<String>("STASH");
-                    println!("Popping {stash:?}");
-                }
-                ("push", sub_matches) => {
-                    let message = sub_matches.get_one::<String>("message");
-                    println!("Pushing {message:?}");
-                }
-                (name, _) => {
-                    unreachable!("Unsupported subcommand `{}`", name)
-                }
-            }
+        Some((RUN, sub_matches)) => {
+            let config = sub_matches.get_one::<String>("config").unwrap();
+            println!("Running sql commands with {config:?}")
         }
         Some((ext, sub_matches)) => {
             let args = sub_matches
@@ -121,5 +87,4 @@ fn main() {
         _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
     }
 
-    // Continued program logic goes here...
 }

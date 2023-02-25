@@ -1,6 +1,6 @@
 
-use serde::{Deserialize, Serialize};
-use std::{fs::File, io::prelude::*};
+use serde;
+use std;
 
 #[derive(Debug, serde::Deserialize)]
 pub struct Config {

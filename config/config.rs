@@ -4,18 +4,19 @@ use std;
 
 #[derive(Debug, serde::Deserialize)]
 pub struct Config {
-    driver: String,
-    envs: Vec<EnvConfig>,
+    pub driver: String,
+    pub envs: Vec<EnvConfig>,
 }
 
 #[derive(Debug, serde::Deserialize)]
 pub struct EnvConfig {
-    user: String,
-    password: String,
-    host: String,
-    port: u16,
-    database: String,
-    static_tables: Vec<String>,
+    pub name: String,
+    pub user: String,
+    pub password: String,
+    pub host: String,
+    pub port: u16,
+    pub database: String,
+    pub static_tables: Vec<String>,
 }
 
 impl Config {
@@ -25,5 +26,9 @@ impl Config {
         let config = serde_yaml::from_reader(reader).unwrap();
 
         Ok(config)
+    }
+
+    pub fn get_env_config(&self, env_name: &str) -> Option<&EnvConfig> {
+        self.envs.iter().find(|env| env.name == env_name)
     }
 }

@@ -5,6 +5,7 @@ use config::Config;
 const DUMP: &str = "dump";
 const COMPARE: &str = "compare";
 const RUN: &str = "run";
+const INIT: &str = "init";
 
 
 fn cli() -> Command {
@@ -20,6 +21,7 @@ fn cli() -> Command {
                 .arg(config_arg())
                 .arg(url_arg())
                 .arg(file_arg())
+                .arg(env_arg())
                 .arg_required_else_help(true),
         )
         .subcommand(
@@ -28,6 +30,7 @@ fn cli() -> Command {
                 .arg(config_arg())
                 .arg(url_arg())
                 .arg(file_arg())
+                .arg(env_arg())
                 .arg_required_else_help(true),
         )
         .subcommand(
@@ -36,7 +39,13 @@ fn cli() -> Command {
                 .arg(config_arg())
                 .arg(url_arg())
                 .arg(file_arg())
+                .arg(env_arg())
                 .arg_required_else_help(true),
+        )
+        .subcommand(
+            Command::new(INIT)
+            .about("Initialize a migrate project")
+            .arg_required_else_help(true), 
         )
         
 }
@@ -59,6 +68,12 @@ fn file_arg() -> clap::Arg {
     .help("The path to the sql file. If not provided, the default path is latest version sql file.")
 }
 
+fn env_arg() -> clap::Arg {
+    arg!(-e --env <ENV>)
+    .default_missing_value("dev")
+    .help("The environment to use. If not provided, the default environment is dev.")
+}
+
 fn main() {
     let matches = cli().get_matches();
 
@@ -67,7 +82,7 @@ fn main() {
             let path = sub_matches.get_one::<String>("config").unwrap();
             println!("Dumping database with {path:?}");
             let config = Config::from_file(&path).unwrap();
-            println!("{:?}", config)
+            println!("{:?}", config.driver)
         }
         Some((COMPARE, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();
@@ -77,6 +92,9 @@ fn main() {
         Some((RUN, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();
             println!("Running sql commands with {path:?}")
+        }
+        Some((INIT, sub_matches)) => {
+            println!("Initializing a migrate project")
         }
         Some((ext, sub_matches)) => {
             let args = sub_matches

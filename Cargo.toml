@@ -11,4 +11,4 @@ path = "config/config.rs"
 [dependencies]
 clap = { version = "4.1.6", features = ["std", "derive"] }
 serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.8"
+serde_yaml = "0.9.16"

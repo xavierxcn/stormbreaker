@@ -44,8 +44,8 @@ fn cli() -> Command {
         )
         .subcommand(
             Command::new(INIT)
-            .about("Initialize a migrate project")
-            .arg_required_else_help(true), 
+                .about("Initialize a migrate project")
+                .arg_required_else_help(true), 
         )
         
 }

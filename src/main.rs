@@ -1,6 +1,12 @@
+mod config;
+mod dump;
+
 use std::ffi::OsString;
 use clap::{arg, Command};
-use config::Config;
+use crate::config::Config;
+use crate::dump::dump;
+
+const VERSION: &str = "v0.1.0-alpha";
 
 const DUMP: &str = "dump";
 const COMPARE: &str = "compare";
@@ -10,7 +16,7 @@ const INIT: &str = "init";
 
 fn cli() -> Command {
     Command::new("storm")
-        .version("v0.1.0-alpha")
+        .version(VERSION)
         .about("Database migration tool")
         .subcommand_required(true)
         .arg_required_else_help(true)
@@ -82,7 +88,10 @@ fn main() {
             let path = sub_matches.get_one::<String>("config").unwrap();
             println!("Dumping database with {path:?}");
             let config = Config::from_file(&path).unwrap();
-            println!("{:?}", config.driver)
+
+            let env = sub_matches.get_one::<String>("env").unwrap();
+
+            dump(&config, env).unwrap();
         }
         Some((COMPARE, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();

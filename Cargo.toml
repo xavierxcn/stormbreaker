@@ -7,4 +7,6 @@ edition = "2021"
 clap = { version = "4.1.6", features = ["std", "derive"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9.16"
+serde_json = "1.0"
 mysql = "23.0.1"
+chrono = "0.4.19"

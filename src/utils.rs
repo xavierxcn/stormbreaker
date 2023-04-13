@@ -8,5 +8,5 @@ pub fn get_current_time() -> String {
 
 // 生成文件名
 pub fn generate_file_name(env: &str) -> String {
-    format!("{}_{}.json", env, get_current_time())
+    format!("dump_{}_{}.json", env, get_current_time())
 }

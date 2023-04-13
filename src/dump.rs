@@ -3,7 +3,7 @@ use mysql::prelude::Queryable;
 use serde::{Serialize, Deserialize};
 use serde_json::Result;
 use crate::config::Config;
-use crate::utils::get_current_time;
+use crate::utils::generate_file_name;
 
 extern crate mysql;
 
@@ -62,8 +62,7 @@ pub fn dump(config: &Config, env: &str) -> Result<()> {
     println!("json: {}", json);
 
     // 写入文件
-    let filename = format!("{}-{}.json", env, get_current_time());
-    let mut file = std::fs::File::create(filename).unwrap();
+    let mut file = std::fs::File::create(generate_file_name(env)).unwrap();
     file.write_all(json.as_bytes()).unwrap();
 
     return Ok(())

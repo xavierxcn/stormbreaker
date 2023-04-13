@@ -10,3 +10,4 @@ pub fn get_current_time() -> String {
 pub fn generate_file_name(env: &str) -> String {
     format!("dump_{}_{}.json", env, get_current_time())
 }
+

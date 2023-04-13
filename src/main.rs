@@ -1,6 +1,7 @@
 mod config;
 mod dump;
 mod utils;
+mod database;
 
 use std::ffi::OsString;
 use clap::{arg, Command};

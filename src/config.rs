@@ -1,10 +1,11 @@
-
 use serde;
 use std;
 
 #[derive(Debug, serde::Deserialize)]
 pub struct Config {
     pub driver: String,
+    pub dump_dir: String,
+    pub compare_dir: String,
     pub envs: Vec<EnvConfig>,
 }
 

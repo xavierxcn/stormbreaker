@@ -2,6 +2,8 @@ mod config;
 mod dump;
 mod utils;
 mod database;
+mod compare;
+mod init;
 
 use std::ffi::OsString;
 use clap::{arg, Command};
@@ -53,33 +55,32 @@ fn cli() -> Command {
         .subcommand(
             Command::new(INIT)
                 .about("Initialize a migrate project")
-                .arg_required_else_help(true), 
+                .arg_required_else_help(true),
         )
-        
 }
 
 fn config_arg() -> clap::Arg {
     arg!(-c --config <CONFIG>)
-    .default_missing_value("~/.stormbreaker/storm.yaml")
-    .help("The path to the configuration file. If not provided, the default path is ~/.stormbreaker/storm.yaml")
+        .default_missing_value("~/.stormbreaker/storm.yaml")
+        .help("The path to the configuration file. If not provided, the default path is ~/.stormbreaker/storm.yaml")
 }
 
 fn url_arg() -> clap::Arg {
     arg!(-u --url <URL>)
-    .default_missing_value("mysql://localhost:3306")
-    .help("The url to the database. If not provided, the default url is mysql://localhost:3306")
+        .default_missing_value("mysql://localhost:3306")
+        .help("The url to the database. If not provided, the default url is mysql://localhost:3306")
 }
 
 fn file_arg() -> clap::Arg {
     arg!(-f --file <FILE>)
-    .default_missing_value("dump.sql")
-    .help("The path to the sql file. If not provided, the default path is latest version sql file.")
+        .default_missing_value("dump.sql")
+        .help("The path to the sql file. If not provided, the default path is latest version sql file.")
 }
 
 fn env_arg() -> clap::Arg {
     arg!(-e --env <ENV>)
-    .default_missing_value("dev")
-    .help("The environment to use. If not provided, the default environment is dev.")
+        .default_missing_value("dev")
+        .help("The environment to use. If not provided, the default environment is dev.")
 }
 
 fn main() {
@@ -98,7 +99,6 @@ fn main() {
         Some((COMPARE, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();
             println!("Comparing database with {path:?}")
-            
         }
         Some((RUN, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();
@@ -117,5 +117,4 @@ fn main() {
         }
         _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
     }
-
 }

@@ -7,14 +7,14 @@ use serde::{Serialize, Deserialize};
 #[derive(Debug)]
 #[derive(Serialize, Deserialize)]
 pub struct Table {
-    name: String,
-    ddl: String,
+    pub(crate) name: String,
+    pub(crate) ddl: String,
 }
 
 #[derive(Debug)]
 #[derive(Serialize, Deserialize)]
-pub struct Dump {
-    tables: Vec<Table>,
+pub struct Database {
+    pub(crate) tables: Vec<Table>,
 }
 
 // 生成mysql url
@@ -29,7 +29,7 @@ pub fn generate_mysql_url(config: &Config, env: &str) -> String {
 }
 
 // 从mysql dump
-pub fn dump_from_mysql(config: &Config, env: &str) -> Result<Dump, io::Error> {
+pub fn dump_from_mysql(config: &Config, env: &str) -> Result<Database, io::Error> {
     let url = generate_mysql_url(config, env);
     let pool = mysql::Pool::new(url.as_str()).unwrap();
     let mut conn = pool.get_conn().unwrap();
@@ -51,6 +51,6 @@ pub fn dump_from_mysql(config: &Config, env: &str) -> Result<Dump, io::Error> {
     }
 
     println!("tables: {:?}", tables);
-    let dump = Dump{tables};
+    let dump = Database{tables};
     return Ok(dump)
 }

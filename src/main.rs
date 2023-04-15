@@ -29,8 +29,6 @@ fn cli() -> Command {
             Command::new(DUMP)
                 .about("Dump the database to a file")
                 .arg(config_arg())
-                .arg(url_arg())
-                .arg(file_arg())
                 .arg(env_arg())
                 .arg_required_else_help(true),
         )
@@ -38,9 +36,8 @@ fn cli() -> Command {
             Command::new(COMPARE)
                 .about("Compare the database file")
                 .arg(config_arg())
-                .arg(url_arg())
-                .arg(file_arg())
-                .arg(env_arg())
+                .arg(src_arg())
+                .arg(dst_arg())
                 .arg_required_else_help(true),
         )
         .subcommand(
@@ -83,6 +80,18 @@ fn env_arg() -> clap::Arg {
         .help("The environment to use. If not provided, the default environment is dev.")
 }
 
+fn src_arg() -> clap::Arg {
+    arg!(-s --src <SRC>)
+        .default_missing_value("dev")
+        .help("The source environment to use. If not provided, the default environment is dev.")
+}
+
+fn dst_arg() -> clap::Arg {
+    arg!(-d --dst <DST>)
+        .default_missing_value("dev")
+        .help("The destination environment to use. If not provided, the default environment is dev.")
+}
+
 fn main() {
     let matches = cli().get_matches();
 
@@ -98,7 +107,13 @@ fn main() {
         }
         Some((COMPARE, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();
-            println!("Comparing database with {path:?}")
+            println!("Comparing database with {path:?}");
+            let config = Config::from_file(&path).unwrap();
+
+            let src = sub_matches.get_one::<String>("src").unwrap();
+            let dst = sub_matches.get_one::<String>("dst").unwrap();
+
+            compare::compare(&config, src, dst).unwrap();
         }
         Some((RUN, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();

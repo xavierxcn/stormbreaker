@@ -1,11 +1,6 @@
-mod config;
-mod dump;
-mod utils;
-
 use std::ffi::OsString;
 use clap::{arg, Command};
-use crate::config::Config;
-use crate::dump::dump;
+use stormbreaker::{Config, dump};
 
 const VERSION: &str = "v0.1.0-alpha";
 
@@ -65,7 +60,7 @@ fn config_arg() -> clap::Arg {
 
 fn url_arg() -> clap::Arg {
     arg!(-u --url <URL>)
-    .default_missing_value("mysql://localhost:3306")
+    .default_missing_value("mysql://192.168.100.101:30070")
     .help("The url to the database. If not provided, the default url is mysql://localhost:3306")
 }
 
@@ -81,7 +76,8 @@ fn env_arg() -> clap::Arg {
     .help("The environment to use. If not provided, the default environment is dev.")
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let matches = cli().get_matches();
 
     match matches.subcommand() {
@@ -92,7 +88,7 @@ fn main() {
 
             let env = sub_matches.get_one::<String>("env").unwrap();
 
-            dump(&config, env).unwrap();
+            dump(&config, env).await.unwrap();
         }
         Some((COMPARE, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();

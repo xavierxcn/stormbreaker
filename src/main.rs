@@ -1,14 +1,6 @@
-mod config;
-mod dump;
-mod utils;
-mod database;
-mod compare;
-mod init;
-
 use std::ffi::OsString;
 use clap::{arg, Command};
-use crate::config::Config;
-use crate::dump::dump;
+use stormbreaker::{Config, dump};
 
 const VERSION: &str = "v0.1.0-alpha";
 
@@ -29,6 +21,8 @@ fn cli() -> Command {
             Command::new(DUMP)
                 .about("Dump the database to a file")
                 .arg(config_arg())
+                .arg(url_arg())
+                .arg(file_arg())
                 .arg(env_arg())
                 .arg_required_else_help(true),
         )
@@ -36,8 +30,9 @@ fn cli() -> Command {
             Command::new(COMPARE)
                 .about("Compare the database file")
                 .arg(config_arg())
-                .arg(src_arg())
-                .arg(dst_arg())
+                .arg(url_arg())
+                .arg(file_arg())
+                .arg(env_arg())
                 .arg_required_else_help(true),
         )
         .subcommand(
@@ -52,47 +47,37 @@ fn cli() -> Command {
         .subcommand(
             Command::new(INIT)
                 .about("Initialize a migrate project")
-                .arg_required_else_help(true),
+                .arg_required_else_help(true), 
         )
+        
 }
 
 fn config_arg() -> clap::Arg {
     arg!(-c --config <CONFIG>)
-        .default_missing_value("~/.stormbreaker/storm.yaml")
-        .help("The path to the configuration file. If not provided, the default path is ~/.stormbreaker/storm.yaml")
+    .default_missing_value("~/.stormbreaker/storm.yaml")
+    .help("The path to the configuration file. If not provided, the default path is ~/.stormbreaker/storm.yaml")
 }
 
 fn url_arg() -> clap::Arg {
     arg!(-u --url <URL>)
-        .default_missing_value("mysql://localhost:3306")
-        .help("The url to the database. If not provided, the default url is mysql://localhost:3306")
+    .default_missing_value("mysql://192.168.100.101:30070")
+    .help("The url to the database. If not provided, the default url is mysql://localhost:3306")
 }
 
 fn file_arg() -> clap::Arg {
     arg!(-f --file <FILE>)
-        .default_missing_value("dump.sql")
-        .help("The path to the sql file. If not provided, the default path is latest version sql file.")
+    .default_missing_value("dump.sql")
+    .help("The path to the sql file. If not provided, the default path is latest version sql file.")
 }
 
 fn env_arg() -> clap::Arg {
     arg!(-e --env <ENV>)
-        .default_missing_value("dev")
-        .help("The environment to use. If not provided, the default environment is dev.")
+    .default_missing_value("dev")
+    .help("The environment to use. If not provided, the default environment is dev.")
 }
 
-fn src_arg() -> clap::Arg {
-    arg!(-s --src <SRC>)
-        .default_missing_value("dev")
-        .help("The source environment to use. If not provided, the default environment is dev.")
-}
-
-fn dst_arg() -> clap::Arg {
-    arg!(-d --dst <DST>)
-        .default_missing_value("dev")
-        .help("The destination environment to use. If not provided, the default environment is dev.")
-}
-
-fn main() {
+#[tokio::main]
+async fn main() {
     let matches = cli().get_matches();
 
     match matches.subcommand() {
@@ -103,17 +88,11 @@ fn main() {
 
             let env = sub_matches.get_one::<String>("env").unwrap();
 
-            dump(&config, env).unwrap();
+            dump(&config, env).await.unwrap();
         }
         Some((COMPARE, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();
-            println!("Comparing database with {path:?}");
-            let config = Config::from_file(&path).unwrap();
-
-            let src = sub_matches.get_one::<String>("src").unwrap();
-            let dst = sub_matches.get_one::<String>("dst").unwrap();
-
-            compare::compare(&config, src, dst).unwrap();
+            println!("Comparing database with {path:?}")
         }
         Some((RUN, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();
@@ -132,4 +111,5 @@ fn main() {
         }
         _ => unreachable!(), // If all subcommands are defined above, anything else is unreachable!()
     }
+
 }

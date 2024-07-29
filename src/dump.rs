@@ -2,8 +2,9 @@ use std::io::Write;
 use serde::{Serialize, Deserialize};
 use serde_json::Result;
 use sqlx::mysql::MySqlPool;
-use sqlx::Row;
+use sqlx::{MySql, Pool, Row};
 use crate::config::Config;
+use crate::load_db_pool;
 use crate::utils::generate_file_name;
 
 #[derive(Debug)]
@@ -23,19 +24,22 @@ pub async fn dump(config: &Config, env: &str) -> Result<()> {
     println!("dumping {}...", env);
     println!("config: {:?}", config);
 
-    let url = format!("mysql://{}:{}@{}:{}/{}",
-        config.get_env_config(env).unwrap().user,
-        config.get_env_config(env).unwrap().password,
-        config.get_env_config(env).unwrap().host,
-        config.get_env_config(env).unwrap().port,
-        config.get_env_config(env).unwrap().database,
-    );
+    let pool = load_db_pool(config, env).await;
+    let dump = dump_from_db(pool).await.unwrap();
 
-    println!("connect url: {}", url);
+    // 将tables以json格式写入文件
+    let json = serde_json::to_string(&dump).unwrap();
+    println!("json: {}", json);
 
+    // 写入文件
+    let mut file = std::fs::File::create(generate_file_name(env)).unwrap();
+    file.write_all(json.as_bytes()).unwrap();
+
+    return Ok(())
+}
+
+async fn dump_from_db(pool: Pool<MySql>) -> Result<Dump> {
     let mut tables: Vec<Table> = Vec::new();
-
-    let pool = MySqlPool::connect(url.as_str()).await.unwrap();
     // 执行 show tables 并获取表名
     let rows = sqlx::query("SHOW TABLES;")
         .fetch_all(&pool).await.unwrap();
@@ -52,15 +56,7 @@ pub async fn dump(config: &Config, env: &str) -> Result<()> {
     println!("tables: {:?}", tables);
     let dump = Dump{tables};
 
-    // 将tables以json格式写入文件
-    let json = serde_json::to_string(&dump).unwrap();
-    println!("json: {}", json);
-
-    // 写入文件
-    let mut file = std::fs::File::create(generate_file_name(env)).unwrap();
-    file.write_all(json.as_bytes()).unwrap();
-
-    return Ok(())
+    return Ok(dump)
 }
 
 async fn get_table_ddl(pool: &MySqlPool, table_name: String) -> sqlx::Result<String> {

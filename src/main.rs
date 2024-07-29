@@ -93,7 +93,6 @@ async fn main() {
         Some((COMPARE, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();
             println!("Comparing database with {path:?}")
-            
         }
         Some((RUN, sub_matches)) => {
             let path = sub_matches.get_one::<String>("config").unwrap();
